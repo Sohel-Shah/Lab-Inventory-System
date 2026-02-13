@@ -1,0 +1,2118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mechanical Engineering Lab Inventory Management</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0a4d68;
+            --primary-dark: #05192a;
+            --accent: #088395;
+            --accent-light: #05bfdb;
+            --warning: #ff6b35;
+            --success: #00c896;
+            --danger: #ef233c;
+            --bg-dark: #0d1821;
+            --bg-card: #1a2332;
+            --bg-hover: #243447;
+            --text-light: #e8f1f5;
+            --text-muted: #8ca5b8;
+            --border: #2d3e50;
+            --shadow: rgba(8, 131, 149, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #0f1a2b 50%, var(--primary-dark) 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                repeating-linear-gradient(90deg,
+                    transparent,
+                    transparent 50px,
+                    rgba(8, 131, 149, 0.03) 50px,
+                    rgba(8, 131, 149, 0.03) 51px),
+                repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 50px,
+                    rgba(8, 131, 149, 0.03) 50px,
+                    rgba(8, 131, 149, 0.03) 51px);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px var(--shadow);
+            border: 1px solid rgba(5, 191, 219, 0.2);
+            animation: slideDown 0.6s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-30px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #fff 0%, var(--accent-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            animation: fadeIn 0.8s ease-out 0.2s both;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .nav-tab {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            padding: 15px 30px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-tab::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(5, 191, 219, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .nav-tab:hover::before {
+            left: 100%;
+        }
+
+        .nav-tab:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px var(--shadow);
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+            border-color: var(--accent-light);
+            color: white;
+            box-shadow: 0 5px 25px var(--shadow);
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px var(--shadow);
+            border-color: var(--accent);
+        }
+
+        .card-header {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--accent-light);
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        /* Forms */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        input,
+        select,
+        textarea {
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 15px;
+            color: var(--text-light);
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        input[type="file"]::file-selector-button {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="file"]::file-selector-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(8, 131, 149, 0.3);
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(8, 131, 149, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Buttons */
+        .btn {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(8, 131, 149, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(8, 131, 149, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-hover) 100%);
+            border: 2px solid var(--border);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, #d90429 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success) 0%, #06ffa5 100%);
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-card);
+            font-size: 0.9rem;
+        }
+
+        thead {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        }
+
+        th {
+            padding: 18px 12px;
+            text-align: left;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            border-bottom: 2px solid var(--accent-light);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: var(--bg-hover);
+            transform: scale(1.01);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .status-working {
+            background: rgba(0, 200, 150, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .status-maintenance {
+            background: rgba(255, 107, 53, 0.2);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .status-faulty {
+            background: rgba(239, 35, 60, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-icon:hover {
+            background: var(--accent-light);
+            transform: scale(1.1);
+        }
+
+        /* Dashboard Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-hover) 100%);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(5, 191, 219, 0.1) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px var(--shadow);
+            border-color: var(--accent);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 900;
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, var(--accent-light) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        /* Report Section */
+        .report-filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .print-button {
+            margin-top: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            color: var(--accent-light);
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid rgba(5, 191, 219, 0.1);
+            border-top: 4px solid var(--accent-light);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media print {
+
+            .nav-tabs,
+            .btn,
+            header,
+            .action-buttons {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+                color: black;
+            }
+
+            .card,
+            .stat-card {
+                border: 1px solid #ccc;
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-pattern"></div>
+
+    <div class="container">
+        <header>
+            <h1>⚙️ Lab Inventory System</h1>
+            <div class="subtitle">Mechanical Engineering Department | Equipment & Maintenance Management</div>
+        </header>
+
+        <div class="nav-tabs">
+            <div class="nav-tab active" onclick="showSection('dashboard')">📊 Dashboard</div>
+            <div class="nav-tab" onclick="showSection('equipment')">🔧 Equipment</div>
+            <div class="nav-tab" onclick="showSection('labs')">🏭 Laboratories</div>
+            <div class="nav-tab" onclick="showSection('maintenance')">🔨 Maintenance</div>
+            <div class="nav-tab" onclick="showSection('reports')">📈 Reports</div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="content-section active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalEquipment">0</div>
+                    <div class="stat-label">Total Equipment</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalLabs">0</div>
+                    <div class="stat-label">Laboratories</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalInvestment">₹0</div>
+                    <div class="stat-label">Total Equipment Investment</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalFloorArea">0</div>
+                    <div class="stat-label">Total Floor Area (sq.ft)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="workingEquipment">0</div>
+                    <div class="stat-label">Working Equipment</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="maintenanceDue">0</div>
+                    <div class="stat-label">Maintenance Due</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Recent Activities</div>
+                <div id="recentActivities">Loading activities...</div>
+            </div>
+        </div>
+
+        <!-- Equipment Section -->
+        <div id="equipment" class="content-section">
+            <div class="card">
+                <div class="card-header">Add New Equipment</div>
+                <form id="equipmentForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Equipment Name *</label>
+                            <input type="text" id="eqName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Equipment ID *</label>
+                            <input type="text" id="eqId" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Deadstock Register No. *</label>
+                            <input type="text" id="eqDeadstockNo" placeholder="DS/2024/001" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Laboratory *</label>
+                            <select id="eqLab" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select id="eqCategory">
+                                <option>Measuring Instruments</option>
+                                <option>Testing Machines</option>
+                                <option>Manufacturing Equipment</option>
+                                <option>CAD/CAM Systems</option>
+                                <option>Thermal Equipment</option>
+                                <option>Material Testing</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Manufacturer</label>
+                            <input type="text" id="eqManufacturer">
+                        </div>
+                        <div class="form-group">
+                            <label>Model Number</label>
+                            <input type="text" id="eqModel">
+                        </div>
+                        <div class="form-group">
+                            <label>Purchase Date *</label>
+                            <input type="date" id="eqPurchaseDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Purchase Order No. *</label>
+                            <input type="text" id="eqPurchaseOrder" placeholder="PO/2024/001" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Purchase Cost (₹)</label>
+                            <input type="number" id="eqCost" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Supplier/Vendor</label>
+                            <input type="text" id="eqSupplier">
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="eqStatus">
+                                <option value="working">Working</option>
+                                <option value="maintenance">Under Maintenance</option>
+                                <option value="faulty">Faulty</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Location in Lab</label>
+                            <input type="text" id="eqLocation">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Description/Specifications</label>
+                        <textarea id="eqDescription"></textarea>
+                    </div>
+
+                    <!-- Document Attachments Section -->
+                    <div
+                        style="background: var(--bg-dark); padding: 20px; border-radius: 10px; border: 1px solid var(--border); margin-top: 20px;">
+                        <h3 style="color: var(--accent-light); margin-bottom: 15px; font-size: 1.1rem;">📎 Document
+                            Attachments</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Purchase Order PDF 📄</label>
+                                <input type="file" id="eqPOFile" accept=".pdf" onchange="handleFileUpload(this, 'po')">
+                                <small style="color: var(--text-muted); display: block; margin-top: 5px;">Upload scanned
+                                    copy of PO (PDF only)</small>
+                                <div id="eqPOFilePreview" style="margin-top: 8px;"></div>
+                            </div>
+                            <div class="form-group">
+                                <label>Equipment Image 📷</label>
+                                <input type="file" id="eqImageFile" accept="image/*"
+                                    onchange="handleFileUpload(this, 'image')">
+                                <small style="color: var(--text-muted); display: block; margin-top: 5px;">Upload
+                                    equipment photo (JPG, PNG)</small>
+                                <div id="eqImageFilePreview" style="margin-top: 8px;"></div>
+                            </div>
+                            <div class="form-group">
+                                <label>Invoice/Bill PDF 📑</label>
+                                <input type="file" id="eqInvoiceFile" accept=".pdf"
+                                    onchange="handleFileUpload(this, 'invoice')">
+                                <small style="color: var(--text-muted); display: block; margin-top: 5px;">Upload
+                                    purchase invoice (PDF only)</small>
+                                <div id="eqInvoiceFilePreview" style="margin-top: 8px;"></div>
+                            </div>
+                            <div class="form-group">
+                                <label>Manual/Documentation 📖</label>
+                                <input type="file" id="eqManualFile" accept=".pdf"
+                                    onchange="handleFileUpload(this, 'manual')">
+                                <small style="color: var(--text-muted); display: block; margin-top: 5px;">Upload user
+                                    manual (PDF only)</small>
+                                <div id="eqManualFilePreview" style="margin-top: 8px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success" style="margin-top: 20px;">Add Equipment</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Equipment List</div>
+
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Search Equipment</label>
+                        <input type="text" id="searchEquipment" placeholder="Search by name, ID, or manufacturer..."
+                            onkeyup="filterEquipmentTable()">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Filter by Lab</label>
+                        <select id="filterLabEquipment" onchange="filterEquipmentTable()">
+                            <option value="">All Laboratories</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Filter by Status</label>
+                        <select id="filterStatus" onchange="filterEquipmentTable()">
+                            <option value="">All Status</option>
+                            <option value="working">Working</option>
+                            <option value="maintenance">Under Maintenance</option>
+                            <option value="faulty">Faulty</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Filter by Category</label>
+                        <select id="filterCategory" onchange="filterEquipmentTable()">
+                            <option value="">All Categories</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="equipmentTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Deadstock No.</th>
+                                <th>Name</th>
+                                <th>Laboratory</th>
+                                <th>Manufacturer</th>
+                                <th>Model</th>
+                                <th>Specifications</th>
+                                <th>Purchase Date</th>
+                                <th>PO Number</th>
+                                <th>Status</th>
+                                <th>Attachments</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="equipmentTableBody"></tbody>
+                    </table>
+                </div>
+
+                <div id="equipmentCount" style="margin-top: 15px; color: var(--text-muted); font-size: 0.9rem;"></div>
+            </div>
+        </div>
+
+        <!-- Labs Section -->
+        <div id="labs" class="content-section">
+            <div class="card">
+                <div class="card-header">Add New Laboratory</div>
+                <form id="labForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Lab Name *</label>
+                            <input type="text" id="labName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Lab Code *</label>
+                            <input type="text" id="labCode" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Floor/Building</label>
+                            <input type="text" id="labLocation">
+                        </div>
+                        <div class="form-group">
+                            <label>Lab Incharge *</label>
+                            <input type="text" id="labIncharge" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Lab Assistant *</label>
+                            <input type="text" id="labAssistant" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Floor Area (sq.ft) *</label>
+                            <input type="number" id="labFloorArea" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Student Capacity</label>
+                            <input type="number" id="labCapacity" min="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="labDescription"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">Add Laboratory</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Laboratories List</div>
+                <div id="labsList"></div>
+            </div>
+        </div>
+
+        <!-- Maintenance Section -->
+        <div id="maintenance" class="content-section">
+            <div class="card">
+                <div class="card-header">Add Maintenance Record</div>
+                <form id="maintenanceForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Equipment *</label>
+                            <select id="mEquipment" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Maintenance Type *</label>
+                            <select id="mType" required>
+                                <option>Routine Maintenance</option>
+                                <option>Repair</option>
+                                <option>Calibration</option>
+                                <option>Upgrade</option>
+                                <option>Emergency Repair</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Date Performed *</label>
+                            <input type="date" id="mDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Performed By</label>
+                            <input type="text" id="mPerformedBy">
+                        </div>
+                        <div class="form-group">
+                            <label>Next Maintenance Date</label>
+                            <input type="date" id="mNextDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Cost</label>
+                            <input type="number" id="mCost" step="0.01">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Work Performed/Notes</label>
+                        <textarea id="mNotes" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">Add Maintenance Record</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Maintenance History</div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Equipment</th>
+                                <th>Type</th>
+                                <th>Performed By</th>
+                                <th>Next Due</th>
+                                <th>Cost</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="maintenanceTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Section -->
+        <div id="reports" class="content-section">
+            <div class="card">
+                <div class="card-header">Generate Reports</div>
+                <div class="report-filters">
+                    <div class="form-group">
+                        <label>Report Type</label>
+                        <select id="reportType" onchange="updateReportFilters()">
+                            <option value="labwise">Lab-wise Equipment Report</option>
+                            <option value="laboverview">Laboratory Overview Report</option>
+                            <option value="purchase">Purchase Order Report</option>
+                            <option value="maintenance">Maintenance Report</option>
+                            <option value="status">Equipment Status Report</option>
+                            <option value="category">Category-wise Report</option>
+                            <option value="cost">Cost Analysis Report</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="filterLab">
+                        <label>Filter by Laboratory</label>
+                        <select id="reportLab">
+                            <option value="">All Laboratories</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="filterDateRange" style="display:none;">
+                        <label>Year Filter</label>
+                        <select id="reportYear">
+                            <option value="">All Years</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                            <option value="2022">2022</option>
+                            <option value="2021">2021</option>
+                            <option value="2020">2020</option>
+                            <option value="2019">2019</option>
+                            <option value="2018">2018</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn" onclick="generateReport()">Generate Report</button>
+                <button class="btn btn-secondary print-button" onclick="window.print()">🖨️ Print Report</button>
+                <button class="btn btn-success" onclick="exportToExcel()" style="margin-left: 10px;">📊 Export to
+                    Excel</button>
+            </div>
+
+            <div class="card" id="reportOutput" style="display:none;">
+                <div class="card-header" id="reportTitle"></div>
+                <div id="reportContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Storage
+        let labs = [];
+        let equipment = [];
+        let maintenance = [];
+
+        // Initialize with sample data
+        function initializeSampleData() {
+            labs = [
+                { code: 'ME-101', name: 'Strength of Materials Lab', location: 'Ground Floor, Block A', incharge: 'Dr. Rajesh Kumar', assistant: 'Mr. Arun Verma', floorArea: 1200, capacity: 30, description: 'Testing of material properties' },
+                { code: 'ME-102', name: 'Fluid Mechanics Lab', location: 'First Floor, Block A', incharge: 'Prof. Anita Sharma', assistant: 'Mr. Deepak Singh', floorArea: 950, capacity: 25, description: 'Fluid flow and hydraulics experiments' },
+                { code: 'ME-103', name: 'Thermodynamics Lab', location: 'Ground Floor, Block B', incharge: 'Dr. Suresh Patel', assistant: 'Ms. Kavita Joshi', floorArea: 1100, capacity: 28, description: 'Heat transfer and thermal systems' },
+                { code: 'ME-104', name: 'Manufacturing Lab', location: 'Ground Floor, Block C', incharge: 'Prof. Vikram Singh', assistant: 'Mr. Ramesh Kumar', floorArea: 1800, capacity: 35, description: 'Machining and manufacturing processes' },
+                { code: 'ME-105', name: 'CAD/CAM Lab', location: 'Second Floor, Block B', incharge: 'Dr. Priya Mehta', assistant: 'Mr. Sunil Prakash', floorArea: 1400, capacity: 40, description: 'Computer-aided design and manufacturing' }
+            ];
+
+            equipment = [
+                { id: 'EQ-001', deadstockNo: 'DS/2020/045', name: 'Universal Testing Machine', lab: 'ME-101', category: 'Testing Machines', manufacturer: 'Instron', model: 'UTM-5000', purchaseDate: '2020-03-15', purchaseOrder: 'PO/2020/045', supplier: 'Scientific Instruments Ltd.', cost: 1500000, status: 'working', location: 'Section A', description: '500kN capacity, digital display', attachments: { poFile: 'PO_2020_045.pdf', image: 'utm_5000.jpg', invoice: 'INV_2020_045.pdf' } },
+                { id: 'EQ-002', deadstockNo: 'DS/2019/089', name: 'Hardness Testing Machine', lab: 'ME-101', category: 'Testing Machines', manufacturer: 'Mitutoyo', model: 'HT-300', purchaseDate: '2019-08-20', purchaseOrder: 'PO/2019/089', supplier: 'Precision Tools India', cost: 250000, status: 'working', location: 'Section B', description: 'Rockwell and Brinell hardness testing', attachments: { image: 'hardness_tester.jpg' } },
+                { id: 'EQ-003', deadstockNo: 'DS/2020/112', name: 'Impact Testing Machine', lab: 'ME-101', category: 'Testing Machines', manufacturer: 'Tinius Olsen', model: 'IT-200', purchaseDate: '2021-01-10', purchaseOrder: 'PO/2020/112', supplier: 'Material Testing Corp.', cost: 350000, status: 'maintenance', location: 'Section C', description: 'Charpy and Izod impact testing', attachments: { poFile: 'PO_2020_112.pdf' } },
+                { id: 'EQ-004', deadstockNo: 'DS/2018/067', name: 'Wind Tunnel', lab: 'ME-102', category: 'Testing Equipment', manufacturer: 'Aerolab', model: 'WT-1000', purchaseDate: '2018-11-05', purchaseOrder: 'PO/2018/067', supplier: 'Aerolab International', cost: 2500000, status: 'working', location: 'Main Hall', description: 'Subsonic wind tunnel with flow visualization', attachments: { image: 'wind_tunnel.jpg', manual: 'WT1000_Manual.pdf' } },
+                { id: 'EQ-005', deadstockNo: 'DS/2020/078', name: 'Hydraulic Bench', lab: 'ME-102', category: 'Testing Equipment', manufacturer: 'TecQuipment', model: 'HB-100', purchaseDate: '2020-06-12', purchaseOrder: 'PO/2020/078', supplier: 'TecQuipment India', cost: 180000, status: 'working', location: 'Section A', description: 'Complete hydraulics experimental setup', attachments: {} },
+                { id: 'EQ-006', deadstockNo: 'DS/2019/094', name: 'Heat Exchanger Test Rig', lab: 'ME-103', category: 'Thermal Equipment', manufacturer: 'HiltonWeb', model: 'HE-150', purchaseDate: '2019-09-25', purchaseOrder: 'PO/2019/094', supplier: 'Thermal Systems Pvt Ltd', cost: 450000, status: 'working', location: 'Section B', description: 'Parallel and counter flow heat exchanger', attachments: { poFile: 'PO_2019_094.pdf', invoice: 'INV_2019_094.pdf' } },
+                { id: 'EQ-007', deadstockNo: 'DS/2021/034', name: 'Refrigeration Test Rig', lab: 'ME-103', category: 'Thermal Equipment', manufacturer: 'Armfield', model: 'RT-200', purchaseDate: '2021-04-18', purchaseOrder: 'PO/2021/034', supplier: 'Armfield India Distributor', cost: 650000, status: 'working', location: 'Section C', description: 'Vapor compression refrigeration system', attachments: { image: 'refrigeration_rig.jpg' } },
+                { id: 'EQ-008', deadstockNo: 'DS/2020/018A', name: 'CNC Lathe Machine', lab: 'ME-104', category: 'Manufacturing Equipment', manufacturer: 'HAAS', model: 'ST-20', purchaseDate: '2020-02-28', purchaseOrder: 'PO/2020/018', supplier: 'HAAS Automation India', cost: 3500000, status: 'working', location: 'Bay 1', description: '3-axis CNC lathe with 8-station turret', attachments: { poFile: 'PO_2020_018.pdf', image: 'cnc_lathe.jpg', manual: 'ST20_Manual.pdf' } },
+                { id: 'EQ-009', deadstockNo: 'DS/2020/018B', name: 'CNC Milling Machine', lab: 'ME-104', category: 'Manufacturing Equipment', manufacturer: 'HAAS', model: 'VM-3', purchaseDate: '2020-02-28', purchaseOrder: 'PO/2020/018', supplier: 'HAAS Automation India', cost: 4200000, status: 'working', location: 'Bay 2', description: '3-axis vertical machining center', attachments: { poFile: 'PO_2020_018.pdf', image: 'cnc_mill.jpg', manual: 'VM3_Manual.pdf' } },
+                { id: 'EQ-010', deadstockNo: 'DS/2021/067', name: '3D Printer', lab: 'ME-104', category: 'Manufacturing Equipment', manufacturer: 'Stratasys', model: 'F370', purchaseDate: '2021-07-15', purchaseOrder: 'PO/2021/067', supplier: 'Imaginarium India', cost: 850000, status: 'working', location: 'Bay 3', description: 'FDM technology 3D printer', attachments: { image: '3d_printer.jpg', invoice: 'INV_2021_067.pdf' } },
+                { id: 'EQ-011', deadstockNo: 'DS/2022/005', name: 'CAD Workstation', lab: 'ME-105', category: 'CAD/CAM Systems', manufacturer: 'Dell', model: 'Precision 5820', purchaseDate: '2022-01-10', purchaseOrder: 'PO/2022/005', supplier: 'Dell Technologies India', cost: 180000, status: 'working', location: 'Workstation 1-30', description: 'High-performance CAD workstation (30 units)', attachments: { poFile: 'PO_2022_005.pdf' } },
+                { id: 'EQ-012', deadstockNo: 'DS/2019/108', name: 'CMM Machine', lab: 'ME-105', category: 'Measuring Instruments', manufacturer: 'Zeiss', model: 'Contura G2', purchaseDate: '2019-12-05', purchaseOrder: 'PO/2019/108', supplier: 'Zeiss India Pvt Ltd', cost: 5500000, status: 'working', location: 'Inspection Room', description: 'Coordinate measuring machine', attachments: { poFile: 'PO_2019_108.pdf', image: 'cmm_machine.jpg', manual: 'ConturaG2_Manual.pdf', invoice: 'INV_2019_108.pdf' } }
+            ];
+
+            maintenance = [
+                { equipment: 'EQ-001', type: 'Calibration', date: '2024-12-15', performedBy: 'Tech Services Pvt Ltd', nextDate: '2025-06-15', cost: 25000, notes: 'Annual calibration completed. All sensors within tolerance.' },
+                { equipment: 'EQ-003', type: 'Repair', date: '2025-01-20', performedBy: 'Maintenance Dept', nextDate: '2025-07-20', cost: 15000, notes: 'Replaced pendulum bearings. Impact mechanism serviced.' },
+                { equipment: 'EQ-004', type: 'Routine Maintenance', date: '2024-11-10', performedBy: 'Lab Technician', nextDate: '2025-05-10', cost: 8000, notes: 'Cleaned filters, checked motor alignment, lubricated bearings.' },
+                { equipment: 'EQ-008', type: 'Calibration', date: '2025-01-05', performedBy: 'HAAS Service Center', nextDate: '2025-07-05', cost: 45000, notes: 'Geometric accuracy verification and tool calibration.' },
+                { equipment: 'EQ-009', type: 'Routine Maintenance', date: '2024-12-28', performedBy: 'HAAS Service Center', nextDate: '2025-06-28', cost: 38000, notes: 'Preventive maintenance, spindle inspection, coolant system check.' }
+            ];
+
+            updateDashboard();
+            populateDropdowns();
+            renderEquipmentTable();
+            renderLabsList();
+            renderMaintenanceTable();
+        }
+
+        // Navigation
+        function showSection(sectionId) {
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Update Dashboard
+        function updateDashboard() {
+            document.getElementById('totalEquipment').textContent = equipment.length;
+            document.getElementById('totalLabs').textContent = labs.length;
+
+            // Calculate total investment
+            const totalInvestment = equipment.reduce((sum, eq) => sum + (eq.cost || 0), 0);
+            document.getElementById('totalInvestment').textContent = '₹' + (totalInvestment / 1000000).toFixed(2) + 'M';
+
+            // Calculate total floor area
+            const totalFloorArea = labs.reduce((sum, lab) => sum + (lab.floorArea || 0), 0);
+            document.getElementById('totalFloorArea').textContent = totalFloorArea.toLocaleString();
+
+            document.getElementById('workingEquipment').textContent = equipment.filter(e => e.status === 'working').length;
+
+            const today = new Date();
+            const maintenanceDue = equipment.filter(eq => {
+                const lastMaint = maintenance.filter(m => m.equipment === eq.id).sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                if (lastMaint && lastMaint.nextDate) {
+                    return new Date(lastMaint.nextDate) <= today;
+                }
+                return false;
+            });
+            document.getElementById('maintenanceDue').textContent = maintenanceDue.length;
+
+            const recentActivitiesHtml = `
+                <div style="color: var(--text-muted);">
+                    <p>✅ ${equipment.length} equipment items registered</p>
+                    <p>💰 Total Investment: ₹${(totalInvestment / 1000000).toFixed(2)}M</p>
+                    <p>📐 Total Lab Space: ${totalFloorArea.toLocaleString()} sq.ft</p>
+                    <p>🔧 ${maintenance.length} maintenance records</p>
+                    <p>🏭 ${labs.length} laboratories active</p>
+                    <p>⚠️ ${equipment.filter(e => e.status === 'maintenance').length} equipment under maintenance</p>
+                </div>
+            `;
+            document.getElementById('recentActivities').innerHTML = recentActivitiesHtml;
+        }
+
+        // Populate Dropdowns
+        function populateDropdowns() {
+            const labSelects = ['eqLab', 'reportLab', 'filterLabEquipment'];
+            labSelects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (!select) return;
+
+                if (selectId === 'reportLab' || selectId === 'filterLabEquipment') {
+                    select.innerHTML = '<option value="">All Laboratories</option>';
+                } else {
+                    select.innerHTML = '';
+                }
+
+                labs.forEach(lab => {
+                    select.innerHTML += `<option value="${lab.code}">${lab.name} (${lab.code})</option>`;
+                });
+            });
+
+            const eqSelect = document.getElementById('mEquipment');
+            eqSelect.innerHTML = '';
+            equipment.forEach(eq => {
+                eqSelect.innerHTML += `<option value="${eq.id}">${eq.name} (${eq.id})</option>`;
+            });
+
+            // Populate category filter
+            const categoryFilter = document.getElementById('filterCategory');
+            const categories = [...new Set(equipment.map(e => e.category))];
+            categoryFilter.innerHTML = '<option value="">All Categories</option>';
+            categories.forEach(cat => {
+                categoryFilter.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
+        }
+
+        // Equipment Form
+        // document.getElementById('equipmentForm').addEventListener('submit', function (e) {
+        //     e.preventDefault();
+
+        //     const newEquipment = {
+        //         id: document.getElementById('eqId').value,
+        //         deadstockNo: document.getElementById('eqDeadstockNo').value,
+        //         name: document.getElementById('eqName').value,
+        //         lab: document.getElementById('eqLab').value,
+        //         category: document.getElementById('eqCategory').value,
+        //         manufacturer: document.getElementById('eqManufacturer').value,
+        //         model: document.getElementById('eqModel').value,
+        //         purchaseDate: document.getElementById('eqPurchaseDate').value,
+        //         purchaseOrder: document.getElementById('eqPurchaseOrder').value,
+        //         supplier: document.getElementById('eqSupplier').value,
+        //         cost: parseFloat(document.getElementById('eqCost').value) || 0,
+        //         status: document.getElementById('eqStatus').value,
+        //         location: document.getElementById('eqLocation').value,
+        //         description: document.getElementById('eqDescription').value,
+        //         attachments: {
+        //             poFile: window.uploadedFiles?.poFile || null,
+        //             image: window.uploadedFiles?.image || null,
+        //             invoice: window.uploadedFiles?.invoice || null,
+        //             manual: window.uploadedFiles?.manual || null
+        //         }
+        //     };
+
+        //     equipment.push(newEquipment);
+        //     this.reset();
+        //     clearFileUploads();
+        //     renderEquipmentTable();
+        //     updateDashboard();
+        //     populateDropdowns();
+        //     alert('Equipment added successfully!');
+        // });
+
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbww9lRUk9IQ3haT0UmKSLYUivONewk2dFXoTNmBbPpRozS7meOq4dTDvGYvtgL3u60k/exec";
+
+document.getElementById('equipmentForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const formData = [
+        document.getElementById('eqId').value,
+        document.getElementById('eqDeadstockNo').value,
+        document.getElementById('eqName').value,
+        document.getElementById('eqLab').value,
+        document.getElementById('eqCategory').value,
+        document.getElementById('eqManufacturer').value,
+        document.getElementById('eqModel').value,
+        document.getElementById('eqPurchaseDate').value,
+        document.getElementById('eqPurchaseOrder').value,
+        parseFloat(document.getElementById('eqCost').value) || 0,
+        document.getElementById('eqStatus').value,
+        document.getElementById('eqLocation').value,
+        document.getElementById('eqDescription').value
+    ];
+
+    // Send to Google Sheets
+    fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors', // Important for GAS
+        cache: 'no-cache',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            sheetName: 'Equipment',
+            values: formData
+        })
+    })
+    .then(() => {
+        alert('Data saved to Google Sheets!');
+        this.reset();
+        // Keep your existing UI update functions
+        renderEquipmentTable(); 
+        updateDashboard();
+    })
+    .catch(error => console.error('Error!', error.message));
+});
+
+        // Lab Form
+        document.getElementById('labForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const newLab = {
+                code: document.getElementById('labCode').value,
+                name: document.getElementById('labName').value,
+                location: document.getElementById('labLocation').value,
+                incharge: document.getElementById('labIncharge').value,
+                assistant: document.getElementById('labAssistant').value,
+                floorArea: parseFloat(document.getElementById('labFloorArea').value) || 0,
+                capacity: parseInt(document.getElementById('labCapacity').value) || 0,
+                description: document.getElementById('labDescription').value
+            };
+
+            labs.push(newLab);
+            this.reset();
+            renderLabsList();
+            updateDashboard();
+            populateDropdowns();
+            alert('Laboratory added successfully!');
+        });
+
+        // Maintenance Form
+        document.getElementById('maintenanceForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const newMaintenance = {
+                equipment: document.getElementById('mEquipment').value,
+                type: document.getElementById('mType').value,
+                date: document.getElementById('mDate').value,
+                performedBy: document.getElementById('mPerformedBy').value,
+                nextDate: document.getElementById('mNextDate').value,
+                cost: parseFloat(document.getElementById('mCost').value) || 0,
+                notes: document.getElementById('mNotes').value
+            };
+
+            maintenance.push(newMaintenance);
+            this.reset();
+            renderMaintenanceTable();
+            updateDashboard();
+            alert('Maintenance record added successfully!');
+        });
+
+        // Render Equipment Table
+        function renderEquipmentTable() {
+            const tbody = document.getElementById('equipmentTableBody');
+            tbody.innerHTML = '';
+
+            equipment.forEach(eq => {
+                const statusClass = `status-${eq.status}`;
+                const formattedDate = eq.purchaseDate ? new Date(eq.purchaseDate).toLocaleDateString() : 'N/A';
+                const specs = eq.description ? (eq.description.length > 50 ? eq.description.substring(0, 50) + '...' : eq.description) : 'N/A';
+
+                // Count attachments
+                let attachmentCount = 0;
+                let attachmentIcons = '';
+                if (eq.attachments) {
+                    if (eq.attachments.poFile) {
+                        attachmentCount++;
+                        attachmentIcons += '<span title="PO Document" style="cursor: pointer; margin-right: 5px;">📄</span>';
+                    }
+                    if (eq.attachments.image) {
+                        attachmentCount++;
+                        attachmentIcons += '<span title="Equipment Image" style="cursor: pointer; margin-right: 5px;">📷</span>';
+                    }
+                    if (eq.attachments.invoice) {
+                        attachmentCount++;
+                        attachmentIcons += '<span title="Invoice" style="cursor: pointer; margin-right: 5px;">📑</span>';
+                    }
+                    if (eq.attachments.manual) {
+                        attachmentCount++;
+                        attachmentIcons += '<span title="Manual" style="cursor: pointer; margin-right: 5px;">📖</span>';
+                    }
+                }
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><code style="background: var(--bg-dark); padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">${eq.id}</code></td>
+                        <td><code style="background: var(--primary-dark); padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; color: var(--accent-light);">${eq.deadstockNo || 'N/A'}</code></td>
+                        <td><strong>${eq.name}</strong></td>
+                        <td>${labs.find(l => l.code === eq.lab)?.name || eq.lab}</td>
+                        <td>${eq.manufacturer || 'N/A'}</td>
+                        <td>${eq.model || 'N/A'}</td>
+                        <td><span style="font-size: 0.9rem; color: var(--text-muted);" title="${eq.description || 'N/A'}">${specs}</span></td>
+                        <td>${formattedDate}</td>
+                        <td><code style="background: var(--bg-dark); padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">${eq.purchaseOrder || 'N/A'}</code></td>
+                        <td><span class="status-badge ${statusClass}">${eq.status.toUpperCase()}</span></td>
+                        <td style="text-align: center;">
+                            ${attachmentCount > 0 ? `<div style="font-size: 1.2rem;">${attachmentIcons}</div><small style="color: var(--text-muted);">${attachmentCount} file(s)</small>` : '<span style="color: var(--text-muted);">No files</span>'}
+                        </td>
+                        <td class="action-buttons">
+                            <button class="btn-icon" onclick="viewEquipmentDetails('${eq.id}')" title="View Details">👁️</button>
+                            <button class="btn-icon" onclick="editEquipment('${eq.id}')" title="Edit">✏️</button>
+                            <button class="btn-icon" onclick="deleteEquipment('${eq.id}')" title="Delete">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            updateEquipmentCount(equipment.length, equipment.length);
+        }
+
+        // Filter Equipment Table
+        function filterEquipmentTable() {
+            const searchTerm = document.getElementById('searchEquipment').value.toLowerCase();
+            const labFilter = document.getElementById('filterLabEquipment').value;
+            const statusFilter = document.getElementById('filterStatus').value;
+            const categoryFilter = document.getElementById('filterCategory').value;
+
+            const tbody = document.getElementById('equipmentTableBody');
+            const rows = tbody.getElementsByTagName('tr');
+            let visibleCount = 0;
+
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const cells = row.getElementsByTagName('td');
+
+                if (cells.length === 0) continue;
+
+                const id = cells[0].textContent.toLowerCase();
+                const name = cells[1].textContent.toLowerCase();
+                const lab = cells[2].textContent;
+                const manufacturer = cells[3].textContent.toLowerCase();
+                const status = equipment.find(e => e.id === cells[0].textContent)?.status || '';
+                const category = equipment.find(e => e.id === cells[0].textContent)?.category || '';
+
+                const matchesSearch = searchTerm === '' ||
+                    id.includes(searchTerm) ||
+                    name.includes(searchTerm) ||
+                    manufacturer.includes(searchTerm);
+
+                const matchesLab = labFilter === '' ||
+                    labs.find(l => l.name === lab)?.code === labFilter;
+
+                const matchesStatus = statusFilter === '' || status === statusFilter;
+
+                const matchesCategory = categoryFilter === '' || category === categoryFilter;
+
+                if (matchesSearch && matchesLab && matchesStatus && matchesCategory) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+
+            updateEquipmentCount(visibleCount, equipment.length);
+        }
+
+        function updateEquipmentCount(visible, total) {
+            const countDiv = document.getElementById('equipmentCount');
+            if (visible === total) {
+                countDiv.innerHTML = `<strong>Showing all ${total} equipment items</strong>`;
+            } else {
+                countDiv.innerHTML = `<strong>Showing ${visible} of ${total} equipment items</strong>`;
+            }
+        }
+
+        // Render Labs List
+        function renderLabsList() {
+            const labsList = document.getElementById('labsList');
+            labsList.innerHTML = '';
+
+            labs.forEach(lab => {
+                const eqCount = equipment.filter(e => e.lab === lab.code).length;
+                const labInvestment = equipment.filter(e => e.lab === lab.code).reduce((sum, eq) => sum + (eq.cost || 0), 0);
+
+                labsList.innerHTML += `
+                    <div class="card" style="margin-bottom: 15px;">
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                            <div>
+                                <h3 style="color: var(--accent-light); margin-bottom: 15px;">${lab.name} (${lab.code})</h3>
+                                <p><strong>Location:</strong> ${lab.location}</p>
+                                <p><strong>Lab Incharge:</strong> ${lab.incharge}</p>
+                                <p><strong>Lab Assistant:</strong> ${lab.assistant}</p>
+                                <p><strong>Description:</strong> ${lab.description}</p>
+                            </div>
+                            <div>
+                                <div style="background: var(--bg-dark); padding: 15px; border-radius: 10px; border: 1px solid var(--border);">
+                                    <p style="margin-bottom: 8px;"><strong>Floor Area:</strong> ${lab.floorArea} sq.ft</p>
+                                    <p style="margin-bottom: 8px;"><strong>Capacity:</strong> ${lab.capacity} students</p>
+                                    <p style="margin-bottom: 8px;"><strong>Equipment Count:</strong> ${eqCount}</p>
+                                    <p><strong>Investment:</strong> ₹${(labInvestment / 100000).toFixed(2)}L</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="action-buttons" style="margin-top: 15px;">
+                            <button class="btn-icon" onclick="editLab('${lab.code}')">✏️ Edit</button>
+                            <button class="btn-icon" onclick="deleteLab('${lab.code}')">🗑️ Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Render Maintenance Table
+        function renderMaintenanceTable() {
+            const tbody = document.getElementById('maintenanceTableBody');
+            tbody.innerHTML = '';
+
+            maintenance.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(m => {
+                const eq = equipment.find(e => e.id === m.equipment);
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${new Date(m.date).toLocaleDateString()}</td>
+                        <td>${eq ? eq.name : m.equipment}</td>
+                        <td>${m.type}</td>
+                        <td>${m.performedBy}</td>
+                        <td>${m.nextDate ? new Date(m.nextDate).toLocaleDateString() : 'N/A'}</td>
+                        <td>₹${m.cost.toLocaleString()}</td>
+                        <td class="action-buttons">
+                            <button class="btn-icon" onclick="viewMaintenanceDetails('${m.equipment}', '${m.date}')">👁️</button>
+                            <button class="btn-icon" onclick="deleteMaintenance('${m.equipment}', '${m.date}')">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Generate Reports
+        function generateReport() {
+            const reportType = document.getElementById('reportType').value;
+            const labFilter = document.getElementById('reportLab').value;
+            const reportOutput = document.getElementById('reportOutput');
+            const reportTitle = document.getElementById('reportTitle');
+            const reportContent = document.getElementById('reportContent');
+
+            reportOutput.style.display = 'block';
+
+            let html = '';
+
+            switch (reportType) {
+                case 'laboverview':
+                    reportTitle.textContent = 'Laboratory Overview Report';
+                    const totalDeptArea = labs.reduce((sum, lab) => sum + (lab.floorArea || 0), 0);
+                    const totalDeptCapacity = labs.reduce((sum, lab) => sum + (lab.capacity || 0), 0);
+                    const totalDeptInvestment = equipment.reduce((sum, eq) => sum + (eq.cost || 0), 0);
+
+                    html = `
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                            <div class="stat-card">
+                                <div class="stat-value">${labs.length}</div>
+                                <div class="stat-label">Total Laboratories</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${totalDeptArea.toLocaleString()}</div>
+                                <div class="stat-label">Total Area (sq.ft)</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${totalDeptCapacity}</div>
+                                <div class="stat-label">Total Capacity</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">₹${(totalDeptInvestment / 10000000).toFixed(2)}Cr</div>
+                                <div class="stat-label">Total Investment</div>
+                            </div>
+                        </div>
+                        <table style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>Lab Code</th>
+                                    <th>Laboratory Name</th>
+                                    <th>Incharge</th>
+                                    <th>Assistant</th>
+                                    <th>Area (sq.ft)</th>
+                                    <th>Capacity</th>
+                                    <th>Equipment</th>
+                                    <th>Investment</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+                    const labsToShow2 = labFilter ? labs.filter(l => l.code === labFilter) : labs;
+                    labsToShow2.forEach(lab => {
+                        const eqCount = equipment.filter(e => e.lab === lab.code).length;
+                        const labInvestment = equipment.filter(e => e.lab === lab.code).reduce((sum, eq) => sum + (eq.cost || 0), 0);
+
+                        html += `
+                            <tr>
+                                <td>${lab.code}</td>
+                                <td>${lab.name}</td>
+                                <td>${lab.incharge}</td>
+                                <td>${lab.assistant}</td>
+                                <td>${lab.floorArea}</td>
+                                <td>${lab.capacity}</td>
+                                <td>${eqCount}</td>
+                                <td>₹${(labInvestment / 100000).toFixed(2)}L</td>
+                            </tr>
+                        `;
+                    });
+
+                    html += '</tbody></table>';
+                    break;
+
+                case 'labwise':
+                    reportTitle.textContent = 'Lab-wise Equipment Report';
+                    const labsToShow = labFilter ? labs.filter(l => l.code === labFilter) : labs;
+
+                    labsToShow.forEach(lab => {
+                        const labEq = equipment.filter(e => e.lab === lab.code);
+                        const labInvestment = labEq.reduce((sum, eq) => sum + (eq.cost || 0), 0);
+
+                        html += `
+                            <h3 style="color: var(--accent-light); margin-top: 20px;">${lab.name} (${lab.code})</h3>
+                            <div style="background: var(--bg-dark); padding: 15px; border-radius: 10px; margin-bottom: 15px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                                <p><strong>Location:</strong> ${lab.location}</p>
+                                <p><strong>Incharge:</strong> ${lab.incharge}</p>
+                                <p><strong>Assistant:</strong> ${lab.assistant}</p>
+                                <p><strong>Floor Area:</strong> ${lab.floorArea} sq.ft</p>
+                                <p><strong>Capacity:</strong> ${lab.capacity} students</p>
+                                <p><strong>Investment:</strong> ₹${(labInvestment / 100000).toFixed(2)}L</p>
+                            </div>
+                            <table style="width: 100%; margin-top: 10px;">
+                                <thead>
+                                    <tr>
+                                        <th>Equipment ID</th>
+                                        <th>Name</th>
+                                        <th>Category</th>
+                                        <th>Status</th>
+                                        <th>Purchase Cost</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+
+                        labEq.forEach(eq => {
+                            html += `
+                                <tr>
+                                    <td>${eq.id}</td>
+                                    <td>${eq.name}</td>
+                                    <td>${eq.category}</td>
+                                    <td><span class="status-badge status-${eq.status}">${eq.status.toUpperCase()}</span></td>
+                                    <td>₹${eq.cost.toLocaleString()}</td>
+                                </tr>
+                            `;
+                        });
+
+                        html += `
+                                </tbody>
+                            </table>
+                            <p style="margin-top: 10px;"><strong>Total Equipment:</strong> ${labEq.length} | <strong>Total Value:</strong> ₹${labInvestment.toLocaleString()}</p>
+                        `;
+                    });
+                    break;
+
+                case 'purchase':
+                    reportTitle.textContent = 'Purchase Order Report';
+                    const yearFilter = document.getElementById('reportYear').value;
+                    let purchaseEq = labFilter ? equipment.filter(e => e.lab === labFilter) : equipment;
+
+                    if (yearFilter) {
+                        purchaseEq = purchaseEq.filter(eq => {
+                            if (!eq.purchaseDate) return false;
+                            return new Date(eq.purchaseDate).getFullYear().toString() === yearFilter;
+                        });
+                    }
+
+                    // Sort by purchase date
+                    purchaseEq.sort((a, b) => new Date(b.purchaseDate) - new Date(a.purchaseDate));
+
+                    const totalPurchaseValue = purchaseEq.reduce((sum, eq) => sum + (eq.cost || 0), 0);
+                    const uniquePOs = [...new Set(purchaseEq.map(e => e.purchaseOrder))].length;
+
+                    html = `
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                            <div class="stat-card">
+                                <div class="stat-value">${purchaseEq.length}</div>
+                                <div class="stat-label">Equipment Purchased</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${uniquePOs}</div>
+                                <div class="stat-label">Purchase Orders</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">₹${(totalPurchaseValue / 10000000).toFixed(2)}Cr</div>
+                                <div class="stat-label">Total Purchase Value</div>
+                            </div>
+                        </div>
+                        <table style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>PO Number</th>
+                                    <th>Purchase Date</th>
+                                    <th>Equipment</th>
+                                    <th>Laboratory</th>
+                                    <th>Supplier</th>
+                                    <th>Amount (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+                    purchaseEq.forEach(eq => {
+                        html += `
+                            <tr>
+                                <td>${eq.purchaseOrder || 'N/A'}</td>
+                                <td>${eq.purchaseDate ? new Date(eq.purchaseDate).toLocaleDateString() : 'N/A'}</td>
+                                <td>${eq.name} (${eq.id})</td>
+                                <td>${labs.find(l => l.code === eq.lab)?.name || eq.lab}</td>
+                                <td>${eq.supplier || 'N/A'}</td>
+                                <td>₹${eq.cost.toLocaleString()}</td>
+                            </tr>
+                        `;
+                    });
+
+                    html += '</tbody></table>';
+                    break;
+
+                case 'maintenance':
+                    reportTitle.textContent = 'Maintenance Report';
+                    const eqToShow = labFilter ? equipment.filter(e => e.lab === labFilter) : equipment;
+
+                    html = `
+                        <table style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>Equipment</th>
+                                    <th>Lab</th>
+                                    <th>Last Maintenance</th>
+                                    <th>Type</th>
+                                    <th>Next Due</th>
+                                    <th>Total Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+                    eqToShow.forEach(eq => {
+                        const eqMaint = maintenance.filter(m => m.equipment === eq.id);
+                        const lastMaint = eqMaint.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                        const totalCost = eqMaint.reduce((sum, m) => sum + m.cost, 0);
+
+                        html += `
+                            <tr>
+                                <td>${eq.name} (${eq.id})</td>
+                                <td>${labs.find(l => l.code === eq.lab)?.name || eq.lab}</td>
+                                <td>${lastMaint ? new Date(lastMaint.date).toLocaleDateString() : 'Never'}</td>
+                                <td>${lastMaint ? lastMaint.type : 'N/A'}</td>
+                                <td>${lastMaint?.nextDate ? new Date(lastMaint.nextDate).toLocaleDateString() : 'N/A'}</td>
+                                <td>₹${totalCost.toLocaleString()}</td>
+                            </tr>
+                        `;
+                    });
+
+                    html += '</tbody></table>';
+                    break;
+
+                case 'status':
+                    reportTitle.textContent = 'Equipment Status Report';
+                    const statusEq = labFilter ? equipment.filter(e => e.lab === labFilter) : equipment;
+
+                    const working = statusEq.filter(e => e.status === 'working').length;
+                    const maintenance = statusEq.filter(e => e.status === 'maintenance').length;
+                    const faulty = statusEq.filter(e => e.status === 'faulty').length;
+
+                    html = `
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px;">
+                            <div class="stat-card">
+                                <div class="stat-value">${working}</div>
+                                <div class="stat-label">Working</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${maintenance}</div>
+                                <div class="stat-label">Under Maintenance</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${faulty}</div>
+                                <div class="stat-label">Faulty</div>
+                            </div>
+                        </div>
+                        <table style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>Equipment</th>
+                                    <th>Lab</th>
+                                    <th>Category</th>
+                                    <th>Status</th>
+                                    <th>Location</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+                    statusEq.forEach(eq => {
+                        html += `
+                            <tr>
+                                <td>${eq.name} (${eq.id})</td>
+                                <td>${labs.find(l => l.code === eq.lab)?.name || eq.lab}</td>
+                                <td>${eq.category}</td>
+                                <td><span class="status-badge status-${eq.status}">${eq.status.toUpperCase()}</span></td>
+                                <td>${eq.location}</td>
+                            </tr>
+                        `;
+                    });
+
+                    html += '</tbody></table>';
+                    break;
+
+                case 'category':
+                    reportTitle.textContent = 'Category-wise Equipment Report';
+                    const categories = [...new Set(equipment.map(e => e.category))];
+
+                    categories.forEach(category => {
+                        const catEq = equipment.filter(e => e.category === category && (!labFilter || e.lab === labFilter));
+                        if (catEq.length > 0) {
+                            html += `
+                                <h3 style="color: var(--accent-light); margin-top: 20px;">${category}</h3>
+                                <table style="width: 100%; margin-top: 10px;">
+                                    <thead>
+                                        <tr>
+                                            <th>Equipment</th>
+                                            <th>Lab</th>
+                                            <th>Manufacturer</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                            `;
+
+                            catEq.forEach(eq => {
+                                html += `
+                                    <tr>
+                                        <td>${eq.name} (${eq.id})</td>
+                                        <td>${labs.find(l => l.code === eq.lab)?.name || eq.lab}</td>
+                                        <td>${eq.manufacturer}</td>
+                                        <td><span class="status-badge status-${eq.status}">${eq.status.toUpperCase()}</span></td>
+                                    </tr>
+                                `;
+                            });
+
+                            html += `
+                                    </tbody>
+                                </table>
+                                <p style="margin-top: 10px;"><strong>Total:</strong> ${catEq.length} equipment</p>
+                            `;
+                        }
+                    });
+                    break;
+
+                case 'cost':
+                    reportTitle.textContent = 'Cost Analysis Report';
+                    const costEq = labFilter ? equipment.filter(e => e.lab === labFilter) : equipment;
+                    const totalEquipmentCost = costEq.reduce((sum, eq) => sum + eq.cost, 0);
+                    const totalMaintenanceCost = maintenance.reduce((sum, m) => sum + m.cost, 0);
+
+                    html = `
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px;">
+                            <div class="stat-card">
+                                <div class="stat-value">₹${(totalEquipmentCost / 1000000).toFixed(2)}M</div>
+                                <div class="stat-label">Total Equipment Value</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">₹${(totalMaintenanceCost / 1000).toFixed(2)}K</div>
+                                <div class="stat-label">Total Maintenance Cost</div>
+                            </div>
+                        </div>
+                        <table style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>Equipment</th>
+                                    <th>Purchase Cost</th>
+                                    <th>Maintenance Cost</th>
+                                    <th>Total Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+                    costEq.forEach(eq => {
+                        const eqMaintCost = maintenance.filter(m => m.equipment === eq.id).reduce((sum, m) => sum + m.cost, 0);
+                        html += `
+                            <tr>
+                                <td>${eq.name} (${eq.id})</td>
+                                <td>₹${eq.cost.toLocaleString()}</td>
+                                <td>₹${eqMaintCost.toLocaleString()}</td>
+                                <td>₹${(eq.cost + eqMaintCost).toLocaleString()}</td>
+                            </tr>
+                        `;
+                    });
+
+                    html += '</tbody></table>';
+                    break;
+            }
+
+            reportContent.innerHTML = html;
+        }
+
+        function updateReportFilters() {
+            const reportType = document.getElementById('reportType').value;
+            document.getElementById('filterDateRange').style.display =
+                (reportType === 'maintenance' || reportType === 'purchase') ? 'block' : 'none';
+        }
+
+        // Delete functions
+        function deleteEquipment(id) {
+            if (confirm('Are you sure you want to delete this equipment?')) {
+                equipment = equipment.filter(e => e.id !== id);
+                renderEquipmentTable();
+                updateDashboard();
+            }
+        }
+
+        function deleteLab(code) {
+            if (confirm('Are you sure you want to delete this laboratory?')) {
+                labs = labs.filter(l => l.code !== code);
+                renderLabsList();
+                updateDashboard();
+                populateDropdowns();
+            }
+        }
+
+        function deleteMaintenance(equipmentId, date) {
+            if (confirm('Are you sure you want to delete this maintenance record?')) {
+                maintenance = maintenance.filter(m => !(m.equipment === equipmentId && m.date === date));
+                renderMaintenanceTable();
+                updateDashboard();
+            }
+        }
+
+        function viewMaintenanceDetails(equipmentId, date) {
+            const record = maintenance.find(m => m.equipment === equipmentId && m.date === date);
+            if (record) {
+                alert(`Maintenance Details:\n\nType: ${record.type}\nDate: ${record.date}\nPerformed By: ${record.performedBy}\nNext Date: ${record.nextDate || 'N/A'}\nCost: ₹${record.cost}\n\nNotes: ${record.notes}`);
+            }
+        }
+
+        function viewEquipmentDetails(id) {
+            const eq = equipment.find(e => e.id === id);
+            if (eq) {
+                const lab = labs.find(l => l.code === eq.lab);
+                const lastMaint = maintenance.filter(m => m.equipment === eq.id)
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+                let details = `EQUIPMENT DETAILS\n\n`;
+                details += `Equipment ID: ${eq.id}\n`;
+                details += `Deadstock Register No.: ${eq.deadstockNo || 'N/A'}\n`;
+                details += `Name: ${eq.name}\n`;
+                details += `Laboratory: ${lab ? lab.name : eq.lab}\n`;
+                details += `Category: ${eq.category}\n\n`;
+
+                details += `PURCHASE INFORMATION\n`;
+                details += `Purchase Date: ${eq.purchaseDate ? new Date(eq.purchaseDate).toLocaleDateString() : 'N/A'}\n`;
+                details += `Purchase Order: ${eq.purchaseOrder || 'N/A'}\n`;
+                details += `Supplier: ${eq.supplier || 'N/A'}\n`;
+                details += `Cost: ₹${eq.cost.toLocaleString()}\n\n`;
+
+                details += `TECHNICAL DETAILS\n`;
+                details += `Manufacturer: ${eq.manufacturer || 'N/A'}\n`;
+                details += `Model: ${eq.model || 'N/A'}\n`;
+                details += `Location: ${eq.location || 'N/A'}\n`;
+                details += `Status: ${eq.status.toUpperCase()}\n\n`;
+
+                if (eq.attachments) {
+                    let attachmentsList = [];
+                    if (eq.attachments.poFile) attachmentsList.push('PO Document: ' + eq.attachments.poFile);
+                    if (eq.attachments.image) attachmentsList.push('Equipment Image: ' + eq.attachments.image);
+                    if (eq.attachments.invoice) attachmentsList.push('Invoice: ' + eq.attachments.invoice);
+                    if (eq.attachments.manual) attachmentsList.push('Manual: ' + eq.attachments.manual);
+
+                    if (attachmentsList.length > 0) {
+                        details += `ATTACHMENTS\n${attachmentsList.join('\n')}\n\n`;
+                    }
+                }
+
+                if (eq.description) {
+                    details += `DESCRIPTION\n${eq.description}\n\n`;
+                }
+
+                if (lastMaint) {
+                    details += `LAST MAINTENANCE\n`;
+                    details += `Date: ${new Date(lastMaint.date).toLocaleDateString()}\n`;
+                    details += `Type: ${lastMaint.type}\n`;
+                    details += `Next Due: ${lastMaint.nextDate ? new Date(lastMaint.nextDate).toLocaleDateString() : 'N/A'}`;
+                }
+
+                alert(details);
+            }
+        }
+
+        // File Upload Handling
+        window.uploadedFiles = {};
+
+        function handleFileUpload(input, fileType) {
+            const file = input.files[0];
+            const previewDiv = document.getElementById(`eq${fileType.charAt(0).toUpperCase() + fileType.slice(1)}FilePreview`);
+
+            if (file) {
+                // Store filename (in production, you would upload to server)
+                window.uploadedFiles[fileType] = file.name;
+
+                // Show preview
+                let previewHTML = `
+                    <div style="background: var(--bg-hover); padding: 8px; border-radius: 6px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.85rem; color: var(--accent-light);">✓ ${file.name}</span>
+                        <button type="button" onclick="clearSingleFile('${fileType}')" style="background: var(--danger); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Remove</button>
+                    </div>
+                `;
+                previewDiv.innerHTML = previewHTML;
+            }
+        }
+
+        function clearSingleFile(fileType) {
+            delete window.uploadedFiles[fileType];
+            const inputId = `eq${fileType.charAt(0).toUpperCase() + fileType.slice(1)}File`;
+            const previewId = inputId + 'Preview';
+
+            document.getElementById(inputId).value = '';
+            document.getElementById(previewId).innerHTML = '';
+        }
+
+        function clearFileUploads() {
+            window.uploadedFiles = {};
+            ['POFile', 'ImageFile', 'InvoiceFile', 'ManualFile'].forEach(type => {
+                document.getElementById(`eq${type}`).value = '';
+                document.getElementById(`eq${type}Preview`).innerHTML = '';
+            });
+        }
+
+        function editEquipment(id) {
+            alert('Edit functionality would open a modal with pre-filled form. For this demo, use delete and add new.');
+        }
+
+        function editLab(code) {
+            alert('Edit functionality would open a modal with pre-filled form. For this demo, use delete and add new.');
+        }
+
+
+        function exportToExcel() {
+            const reportType = document.getElementById('reportType').value;
+            const labFilter = document.getElementById('reportLab').value;
+            const yearFilter = document.getElementById('reportYear').value;
+
+            let data = [];
+            let filename = 'Report.xlsx';
+
+            // Helper to get Lab Name
+            const getLabName = (code) => {
+                const lab = labs.find(l => l.code === code);
+                return lab ? `${lab.name} (${code})` : code;
+            };
+
+            switch (reportType) {
+                case 'laboverview':
+                    filename = 'Laboratory_Overview_Report.xlsx';
+                    const labsToShow2 = labFilter ? labs.filter(l => l.code === labFilter) : labs;
+                    data = labsToShow2.map(lab => {
+                        const eqCount = equipment.filter(e => e.lab === lab.code).length;
+                        const labInvestment = equipment.filter(e => e.lab === lab.code).reduce((sum, eq) => sum + (eq.cost || 0), 0);
+                        return {
+                            'Lab Code': lab.code,
+                            'Laboratory Name': lab.name,
+                            'Incharge': lab.incharge,
+                            'Assistant': lab.assistant,
+                            'Area (sq.ft)': lab.floorArea,
+                            'Capacity': lab.capacity,
+                            'Equipment Count': eqCount,
+                            'Investment (₹)': labInvestment
+                        };
+                    });
+                    break;
+
+                case 'labwise':
+                    filename = 'Lab_Wise_Equipment_Report.xlsx';
+                    const labsToShow = labFilter ? labs.filter(l => l.code === labFilter) : labs;
+                    labsToShow.forEach(lab => {
+                        const labEq = equipment.filter(e => e.lab === lab.code);
+                        if (labEq.length === 0) return;
+
+                        // Add a header row for the lab if there are multiple labs, or just list equipment
+                        // For Excel, flat list is better, maybe with Lab column
+                        labEq.forEach(eq => {
+                            data.push({
+                                'Lab Name': lab.name,
+                                'Lab Code': lab.code,
+                                'Equipment ID': eq.id,
+                                'Name': eq.name,
+                                'Category': eq.category,
+                                'Status': eq.status.toUpperCase(),
+                                'Manufacturer': eq.manufacturer,
+                                'Model': eq.model,
+                                'Purchase Cost (₹)': eq.cost
+                            });
+                        });
+                    });
+                    break;
+
+                case 'purchase':
+                    filename = 'Purchase_Order_Report.xlsx';
+                    let purchaseEq = labFilter ? equipment.filter(e => e.lab === labFilter) : equipment;
+
+                    if (yearFilter) {
+                        purchaseEq = purchaseEq.filter(eq => {
+                            if (!eq.purchaseDate) return false;
+                            return new Date(eq.purchaseDate).getFullYear().toString() === yearFilter;
+                        });
+                    }
+
+                    purchaseEq.sort((a, b) => new Date(b.purchaseDate) - new Date(a.purchaseDate));
+
+                    data = purchaseEq.map(eq => ({
+                        'PO Number': eq.purchaseOrder || 'N/A',
+                        'Purchase Date': eq.purchaseDate ? new Date(eq.purchaseDate).toLocaleDateString() : 'N/A',
+                        'Equipment Name': eq.name,
+                        'Equipment ID': eq.id,
+                        'Laboratory': getLabName(eq.lab),
+                        'Supplier': eq.supplier || 'N/A',
+                        'Amount (₹)': eq.cost
+                    }));
+                    break;
+
+                case 'maintenance':
+                    filename = 'Maintenance_Report.xlsx';
+                    const eqToShow = labFilter ? equipment.filter(e => e.lab === labFilter) : equipment;
+
+                    eqToShow.forEach(eq => {
+                        const eqMaint = maintenance.filter(m => m.equipment === eq.id);
+                        if (eqMaint.length === 0) return;
+
+                        eqMaint.forEach(m => {
+                            data.push({
+                                'Equipment Name': eq.name,
+                                'Equipment ID': eq.id,
+                                'Laboratory': getLabName(eq.lab),
+                                'Date': new Date(m.date).toLocaleDateString(),
+                                'Type': m.type,
+                                'Performed By': m.performedBy,
+                                'Next Due': m.nextDate ? new Date(m.nextDate).toLocaleDateString() : 'N/A',
+                                'Cost (₹)': m.cost,
+                                'Notes': m.notes
+                            });
+                        });
+                    });
+                    // Also include equipment with no maintenance if needed? 
+                    // For now, let's list all maintenance records filtered by lab
+                    if (data.length === 0 && eqToShow.length > 0) {
+                        // If no maintenance records found for the selected filter
+                        alert('No maintenance records found to export.');
+                        return;
+                    }
+                    break;
+
+                case 'status':
+                    filename = 'Equipment_Status_Report.xlsx';
+                    const statusEq = labFilter ? equipment.filter(e => e.lab === labFilter) : equipment;
+                    data = statusEq.map(eq => ({
+                        'Equipment Name': eq.name,
+                        'Equipment ID': eq.id,
+                        'Laboratory': getLabName(eq.lab),
+                        'Category': eq.category,
+                        'Status': eq.status.toUpperCase(),
+                        'Location': eq.location,
+                        'Manufacturer': eq.manufacturer
+                    }));
+                    break;
+
+                case 'category':
+                    filename = 'Category_Wise_Report.xlsx';
+                    const catEq = labFilter ? equipment.filter(e => e.lab === labFilter) : equipment;
+                    data = catEq.map(eq => ({
+                        'Category': eq.category,
+                        'Equipment Name': eq.name,
+                        'Equipment ID': eq.id,
+                        'Laboratory': getLabName(eq.lab),
+                        'Manufacturer': eq.manufacturer,
+                        'Model': eq.model,
+                        'Status': eq.status.toUpperCase(),
+                        'Cost (₹)': eq.cost
+                    }));
+                    // Sort by category
+                    data.sort((a, b) => a.Category.localeCompare(b.Category));
+                    break;
+
+                case 'cost':
+                    filename = 'Cost_Analysis_Report.xlsx';
+                    const costEq = labFilter ? equipment.filter(e => e.lab === labFilter) : equipment;
+                    data = costEq.map(eq => {
+                        const eqMaintCost = maintenance.filter(m => m.equipment === eq.id).reduce((sum, m) => sum + m.cost, 0);
+                        return {
+                            'Equipment Name': eq.name,
+                            'Equipment ID': eq.id,
+                            'Laboratory': getLabName(eq.lab),
+                            'Purchase Cost (₹)': eq.cost,
+                            'Maintenance Cost (₹)': eqMaintCost,
+                            'Total Cost (₹)': eq.cost + eqMaintCost
+                        };
+                    });
+                    break;
+            }
+
+            if (data.length === 0) {
+                alert('No data available to export for the selected filters.');
+                return;
+            }
+
+            // Generate Excel
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Report");
+            XLSX.writeFile(wb, filename);
+        }
+
+        // Initialize on load
+        window.onload = function () {
+            initializeSampleData();
+        };
+    </script>
+</body>
+
+</html>
