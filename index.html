@@ -1004,45 +1004,105 @@
         let equipment = [];
         let maintenance = [];
 
-        // Initialize with sample data
-        function initializeSampleData() {
-            labs = [
-                { code: 'ME-101', name: 'Strength of Materials Lab', location: 'Ground Floor, Block A', incharge: 'Dr. Rajesh Kumar', assistant: 'Mr. Arun Verma', floorArea: 1200, capacity: 30, description: 'Testing of material properties' },
-                { code: 'ME-102', name: 'Fluid Mechanics Lab', location: 'First Floor, Block A', incharge: 'Prof. Anita Sharma', assistant: 'Mr. Deepak Singh', floorArea: 950, capacity: 25, description: 'Fluid flow and hydraulics experiments' },
-                { code: 'ME-103', name: 'Thermodynamics Lab', location: 'Ground Floor, Block B', incharge: 'Dr. Suresh Patel', assistant: 'Ms. Kavita Joshi', floorArea: 1100, capacity: 28, description: 'Heat transfer and thermal systems' },
-                { code: 'ME-104', name: 'Manufacturing Lab', location: 'Ground Floor, Block C', incharge: 'Prof. Vikram Singh', assistant: 'Mr. Ramesh Kumar', floorArea: 1800, capacity: 35, description: 'Machining and manufacturing processes' },
-                { code: 'ME-105', name: 'CAD/CAM Lab', location: 'Second Floor, Block B', incharge: 'Dr. Priya Mehta', assistant: 'Mr. Sunil Prakash', floorArea: 1400, capacity: 40, description: 'Computer-aided design and manufacturing' }
-            ];
+        // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzLewXEkylyl2fqH0xPlB7CaZXNU3Eb6m2XP0QoUJ4Yolpr_oxEWyeRKPNq6to2DBdQ/exec';
 
-            equipment = [
-                { id: 'EQ-001', deadstockNo: 'DS/2020/045', name: 'Universal Testing Machine', lab: 'ME-101', category: 'Testing Machines', manufacturer: 'Instron', model: 'UTM-5000', purchaseDate: '2020-03-15', purchaseOrder: 'PO/2020/045', supplier: 'Scientific Instruments Ltd.', cost: 1500000, status: 'working', location: 'Section A', description: '500kN capacity, digital display', attachments: { poFile: 'PO_2020_045.pdf', image: 'utm_5000.jpg', invoice: 'INV_2020_045.pdf' } },
-                { id: 'EQ-002', deadstockNo: 'DS/2019/089', name: 'Hardness Testing Machine', lab: 'ME-101', category: 'Testing Machines', manufacturer: 'Mitutoyo', model: 'HT-300', purchaseDate: '2019-08-20', purchaseOrder: 'PO/2019/089', supplier: 'Precision Tools India', cost: 250000, status: 'working', location: 'Section B', description: 'Rockwell and Brinell hardness testing', attachments: { image: 'hardness_tester.jpg' } },
-                { id: 'EQ-003', deadstockNo: 'DS/2020/112', name: 'Impact Testing Machine', lab: 'ME-101', category: 'Testing Machines', manufacturer: 'Tinius Olsen', model: 'IT-200', purchaseDate: '2021-01-10', purchaseOrder: 'PO/2020/112', supplier: 'Material Testing Corp.', cost: 350000, status: 'maintenance', location: 'Section C', description: 'Charpy and Izod impact testing', attachments: { poFile: 'PO_2020_112.pdf' } },
-                { id: 'EQ-004', deadstockNo: 'DS/2018/067', name: 'Wind Tunnel', lab: 'ME-102', category: 'Testing Equipment', manufacturer: 'Aerolab', model: 'WT-1000', purchaseDate: '2018-11-05', purchaseOrder: 'PO/2018/067', supplier: 'Aerolab International', cost: 2500000, status: 'working', location: 'Main Hall', description: 'Subsonic wind tunnel with flow visualization', attachments: { image: 'wind_tunnel.jpg', manual: 'WT1000_Manual.pdf' } },
-                { id: 'EQ-005', deadstockNo: 'DS/2020/078', name: 'Hydraulic Bench', lab: 'ME-102', category: 'Testing Equipment', manufacturer: 'TecQuipment', model: 'HB-100', purchaseDate: '2020-06-12', purchaseOrder: 'PO/2020/078', supplier: 'TecQuipment India', cost: 180000, status: 'working', location: 'Section A', description: 'Complete hydraulics experimental setup', attachments: {} },
-                { id: 'EQ-006', deadstockNo: 'DS/2019/094', name: 'Heat Exchanger Test Rig', lab: 'ME-103', category: 'Thermal Equipment', manufacturer: 'HiltonWeb', model: 'HE-150', purchaseDate: '2019-09-25', purchaseOrder: 'PO/2019/094', supplier: 'Thermal Systems Pvt Ltd', cost: 450000, status: 'working', location: 'Section B', description: 'Parallel and counter flow heat exchanger', attachments: { poFile: 'PO_2019_094.pdf', invoice: 'INV_2019_094.pdf' } },
-                { id: 'EQ-007', deadstockNo: 'DS/2021/034', name: 'Refrigeration Test Rig', lab: 'ME-103', category: 'Thermal Equipment', manufacturer: 'Armfield', model: 'RT-200', purchaseDate: '2021-04-18', purchaseOrder: 'PO/2021/034', supplier: 'Armfield India Distributor', cost: 650000, status: 'working', location: 'Section C', description: 'Vapor compression refrigeration system', attachments: { image: 'refrigeration_rig.jpg' } },
-                { id: 'EQ-008', deadstockNo: 'DS/2020/018A', name: 'CNC Lathe Machine', lab: 'ME-104', category: 'Manufacturing Equipment', manufacturer: 'HAAS', model: 'ST-20', purchaseDate: '2020-02-28', purchaseOrder: 'PO/2020/018', supplier: 'HAAS Automation India', cost: 3500000, status: 'working', location: 'Bay 1', description: '3-axis CNC lathe with 8-station turret', attachments: { poFile: 'PO_2020_018.pdf', image: 'cnc_lathe.jpg', manual: 'ST20_Manual.pdf' } },
-                { id: 'EQ-009', deadstockNo: 'DS/2020/018B', name: 'CNC Milling Machine', lab: 'ME-104', category: 'Manufacturing Equipment', manufacturer: 'HAAS', model: 'VM-3', purchaseDate: '2020-02-28', purchaseOrder: 'PO/2020/018', supplier: 'HAAS Automation India', cost: 4200000, status: 'working', location: 'Bay 2', description: '3-axis vertical machining center', attachments: { poFile: 'PO_2020_018.pdf', image: 'cnc_mill.jpg', manual: 'VM3_Manual.pdf' } },
-                { id: 'EQ-010', deadstockNo: 'DS/2021/067', name: '3D Printer', lab: 'ME-104', category: 'Manufacturing Equipment', manufacturer: 'Stratasys', model: 'F370', purchaseDate: '2021-07-15', purchaseOrder: 'PO/2021/067', supplier: 'Imaginarium India', cost: 850000, status: 'working', location: 'Bay 3', description: 'FDM technology 3D printer', attachments: { image: '3d_printer.jpg', invoice: 'INV_2021_067.pdf' } },
-                { id: 'EQ-011', deadstockNo: 'DS/2022/005', name: 'CAD Workstation', lab: 'ME-105', category: 'CAD/CAM Systems', manufacturer: 'Dell', model: 'Precision 5820', purchaseDate: '2022-01-10', purchaseOrder: 'PO/2022/005', supplier: 'Dell Technologies India', cost: 180000, status: 'working', location: 'Workstation 1-30', description: 'High-performance CAD workstation (30 units)', attachments: { poFile: 'PO_2022_005.pdf' } },
-                { id: 'EQ-012', deadstockNo: 'DS/2019/108', name: 'CMM Machine', lab: 'ME-105', category: 'Measuring Instruments', manufacturer: 'Zeiss', model: 'Contura G2', purchaseDate: '2019-12-05', purchaseOrder: 'PO/2019/108', supplier: 'Zeiss India Pvt Ltd', cost: 5500000, status: 'working', location: 'Inspection Room', description: 'Coordinate measuring machine', attachments: { poFile: 'PO_2019_108.pdf', image: 'cmm_machine.jpg', manual: 'ConturaG2_Manual.pdf', invoice: 'INV_2019_108.pdf' } }
-            ];
+        async function fetchData() {
+            showLoading(true);
+            try {
+                if (API_URL === 'PASTE_YOUR_WEB_APP_URL_HERE' || API_URL === '') {
+                    alert('Please configure the API_URL in the code to connect to Google Sheets.');
+                    showLoading(false);
+                    return;
+                }
 
-            maintenance = [
-                { equipment: 'EQ-001', type: 'Calibration', date: '2024-12-15', performedBy: 'Tech Services Pvt Ltd', nextDate: '2025-06-15', cost: 25000, notes: 'Annual calibration completed. All sensors within tolerance.' },
-                { equipment: 'EQ-003', type: 'Repair', date: '2025-01-20', performedBy: 'Maintenance Dept', nextDate: '2025-07-20', cost: 15000, notes: 'Replaced pendulum bearings. Impact mechanism serviced.' },
-                { equipment: 'EQ-004', type: 'Routine Maintenance', date: '2024-11-10', performedBy: 'Lab Technician', nextDate: '2025-05-10', cost: 8000, notes: 'Cleaned filters, checked motor alignment, lubricated bearings.' },
-                { equipment: 'EQ-008', type: 'Calibration', date: '2025-01-05', performedBy: 'HAAS Service Center', nextDate: '2025-07-05', cost: 45000, notes: 'Geometric accuracy verification and tool calibration.' },
-                { equipment: 'EQ-009', type: 'Routine Maintenance', date: '2024-12-28', performedBy: 'HAAS Service Center', nextDate: '2025-06-28', cost: 38000, notes: 'Preventive maintenance, spindle inspection, coolant system check.' }
-            ];
+                const response = await fetch(`${API_URL}?action=getData`);
+                const result = await response.json();
+                if (result.status === 'success') {
+                    labs = result.data.labs;
+                    equipment = result.data.equipment;
+                    maintenance = result.data.maintenance;
 
-            updateDashboard();
-            populateDropdowns();
-            renderEquipmentTable();
-            renderLabsList();
-            renderMaintenanceTable();
+                    // Parse attachments if they are strings
+                    equipment.forEach(eq => {
+                        if (typeof eq.attachments === 'string') {
+                            try {
+                                eq.attachments = JSON.parse(eq.attachments);
+                            } catch (e) {
+                                eq.attachments = {};
+                            }
+                        }
+                    });
+
+                    updateDashboard();
+                    populateDropdowns();
+                    renderEquipmentTable();
+                    renderLabsList();
+                    renderMaintenanceTable();
+                } else {
+                    alert('Error fetching data: ' + result.message);
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Failed to connect to Google Sheets. Please check your internet connection and verify the API URL.');
+            } finally {
+                showLoading(false);
+            }
         }
+
+        async function postData(action, params, bodyData) {
+            showLoading(true);
+
+            const url = new URL(API_URL);
+            url.searchParams.append('action', action);
+            for (const key in params) {
+                url.searchParams.append(key, params[key]);
+            }
+
+            try {
+                const response = await fetch(url.toString(), {
+                    method: 'POST',
+                    body: JSON.stringify(bodyData)
+                });
+
+                const result = await response.json();
+                if (result.status === 'success') {
+                    return true;
+                } else {
+                    alert('Error: ' + result.message);
+                    return false;
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Request failed. Check console for details.');
+                return false;
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showLoading(isLoading) {
+            const loader = document.getElementById('loadingOverlay');
+            if (isLoading) {
+                if (!loader) {
+                    const div = document.createElement('div');
+                    div.id = 'loadingOverlay';
+                    div.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;display:flex;justify-content:center;align-items:center;color:white;font-size:2rem;flex-direction:column;';
+                    div.innerHTML = '<div class="spinner"></div><div>Loading...</div>';
+                    document.body.appendChild(div);
+                } else {
+                    loader.style.display = 'flex';
+                }
+            } else {
+                if (loader) loader.style.display = 'none';
+            }
+        }
+
+
+        // Initialize with sample data
+        // Initial Load
+        // Removed initializeSampleData
+
 
         // Navigation
         function showSection(sectionId) {
@@ -1128,85 +1188,56 @@
         }
 
         // Equipment Form
-        // document.getElementById('equipmentForm').addEventListener('submit', function (e) {
-        //     e.preventDefault();
-
-        //     const newEquipment = {
-        //         id: document.getElementById('eqId').value,
-        //         deadstockNo: document.getElementById('eqDeadstockNo').value,
-        //         name: document.getElementById('eqName').value,
-        //         lab: document.getElementById('eqLab').value,
-        //         category: document.getElementById('eqCategory').value,
-        //         manufacturer: document.getElementById('eqManufacturer').value,
-        //         model: document.getElementById('eqModel').value,
-        //         purchaseDate: document.getElementById('eqPurchaseDate').value,
-        //         purchaseOrder: document.getElementById('eqPurchaseOrder').value,
-        //         supplier: document.getElementById('eqSupplier').value,
-        //         cost: parseFloat(document.getElementById('eqCost').value) || 0,
-        //         status: document.getElementById('eqStatus').value,
-        //         location: document.getElementById('eqLocation').value,
-        //         description: document.getElementById('eqDescription').value,
-        //         attachments: {
-        //             poFile: window.uploadedFiles?.poFile || null,
-        //             image: window.uploadedFiles?.image || null,
-        //             invoice: window.uploadedFiles?.invoice || null,
-        //             manual: window.uploadedFiles?.manual || null
-        //         }
-        //     };
-
-        //     equipment.push(newEquipment);
-        //     this.reset();
-        //     clearFileUploads();
-        //     renderEquipmentTable();
-        //     updateDashboard();
-        //     populateDropdowns();
-        //     alert('Equipment added successfully!');
-        // });
-
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbww9lRUk9IQ3haT0UmKSLYUivONewk2dFXoTNmBbPpRozS7meOq4dTDvGYvtgL3u60k/exec";
-
-        document.getElementById('equipmentForm').addEventListener('submit', function (e) {
+        // Equipment Form
+        document.getElementById('equipmentForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
-            const formData = [
-                document.getElementById('eqId').value,
-                document.getElementById('eqDeadstockNo').value,
-                document.getElementById('eqName').value,
-                document.getElementById('eqLab').value,
-                document.getElementById('eqCategory').value,
-                document.getElementById('eqManufacturer').value,
-                document.getElementById('eqModel').value,
-                document.getElementById('eqPurchaseDate').value,
-                document.getElementById('eqPurchaseOrder').value,
-                parseFloat(document.getElementById('eqCost').value) || 0,
-                document.getElementById('eqStatus').value,
-                document.getElementById('eqLocation').value,
-                document.getElementById('eqDescription').value
-            ];
+            const newEquipment = {
+                id: document.getElementById('eqId').value,
+                deadstockNo: document.getElementById('eqDeadstockNo').value,
+                name: document.getElementById('eqName').value,
+                lab: document.getElementById('eqLab').value,
+                category: document.getElementById('eqCategory').value,
+                manufacturer: document.getElementById('eqManufacturer').value,
+                model: document.getElementById('eqModel').value,
+                purchaseDate: document.getElementById('eqPurchaseDate').value,
+                purchaseOrder: document.getElementById('eqPurchaseOrder').value,
+                supplier: document.getElementById('eqSupplier').value,
+                cost: parseFloat(document.getElementById('eqCost').value) || 0,
+                status: document.getElementById('eqStatus').value,
+                location: document.getElementById('eqLocation').value,
+                description: document.getElementById('eqDescription').value,
+                attachments: {
+                    poFile: window.uploadedFiles?.poFile || null,
+                    image: window.uploadedFiles?.image || null,
+                    invoice: window.uploadedFiles?.invoice || null,
+                    manual: window.uploadedFiles?.manual || null
+                }
+            };
 
-            // Send to Google Sheets
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors', // Important for GAS
-                cache: 'no-cache',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    sheetName: 'Equipment',
-                    values: formData
-                })
-            })
-                .then(() => {
-                    alert('Data saved to Google Sheets!');
-                    this.reset();
-                    // Keep your existing UI update functions
-                    renderEquipmentTable();
-                    updateDashboard();
-                })
-                .catch(error => console.error('Error!', error.message));
+            // Check if ID already exists
+            if (equipment.some(e => e.id === newEquipment.id)) {
+                alert('Equipment ID already exists!');
+                return;
+            }
+
+            const success = await postData('addItem', { type: 'equipment' }, newEquipment);
+
+            if (success) {
+                equipment.push(newEquipment);
+                this.reset();
+                clearFileUploads();
+                renderEquipmentTable();
+                updateDashboard();
+                populateDropdowns();
+                alert('Equipment added successfully!');
+                fetchData(); // Sync with server for full consistency
+            }
         });
 
         // Lab Form
-        document.getElementById('labForm').addEventListener('submit', function (e) {
+        // Lab Form
+        document.getElementById('labForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
             const newLab = {
@@ -1220,16 +1251,27 @@
                 description: document.getElementById('labDescription').value
             };
 
-            labs.push(newLab);
-            this.reset();
-            renderLabsList();
-            updateDashboard();
-            populateDropdowns();
-            alert('Laboratory added successfully!');
+            if (labs.some(l => l.code === newLab.code)) {
+                alert('Lab Code already exists!');
+                return;
+            }
+
+            const success = await postData('addItem', { type: 'lab' }, newLab);
+
+            if (success) {
+                labs.push(newLab);
+                this.reset();
+                renderLabsList();
+                updateDashboard();
+                populateDropdowns();
+                alert('Laboratory added successfully!');
+                fetchData();
+            }
         });
 
         // Maintenance Form
-        document.getElementById('maintenanceForm').addEventListener('submit', function (e) {
+        // Maintenance Form
+        document.getElementById('maintenanceForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
             const newMaintenance = {
@@ -1242,11 +1284,16 @@
                 notes: document.getElementById('mNotes').value
             };
 
-            maintenance.push(newMaintenance);
-            this.reset();
-            renderMaintenanceTable();
-            updateDashboard();
-            alert('Maintenance record added successfully!');
+            const success = await postData('addItem', { type: 'maintenance' }, newMaintenance);
+
+            if (success) {
+                maintenance.push(newMaintenance);
+                this.reset();
+                renderMaintenanceTable();
+                updateDashboard();
+                alert('Maintenance record added successfully!');
+                fetchData();
+            }
         });
 
         // Render Equipment Table
@@ -1801,28 +1848,40 @@
         }
 
         // Delete functions
-        function deleteEquipment(id) {
-            if (confirm('Are you sure you want to delete this equipment?')) {
-                equipment = equipment.filter(e => e.id !== id);
-                renderEquipmentTable();
-                updateDashboard();
+        async function deleteEquipment(id) {
+            if (confirm('Are you sure you want to delete this equipment? This action cannot be undone from here.')) {
+                const success = await postData('deleteItem', { type: 'equipment', id: id });
+                if (success) {
+                    equipment = equipment.filter(e => e.id !== id);
+                    renderEquipmentTable();
+                    updateDashboard();
+                    fetchData();
+                }
             }
         }
 
-        function deleteLab(code) {
+        async function deleteLab(code) {
             if (confirm('Are you sure you want to delete this laboratory?')) {
-                labs = labs.filter(l => l.code !== code);
-                renderLabsList();
-                updateDashboard();
-                populateDropdowns();
+                const success = await postData('deleteItem', { type: 'lab', id: code });
+                if (success) {
+                    labs = labs.filter(l => l.code !== code);
+                    renderLabsList();
+                    updateDashboard();
+                    populateDropdowns();
+                    fetchData();
+                }
             }
         }
 
-        function deleteMaintenance(equipmentId, date) {
+        async function deleteMaintenance(equipmentId, date) {
             if (confirm('Are you sure you want to delete this maintenance record?')) {
-                maintenance = maintenance.filter(m => !(m.equipment === equipmentId && m.date === date));
-                renderMaintenanceTable();
-                updateDashboard();
+                const success = await postData('deleteItem', { type: 'maintenance', equipment: equipmentId, date: date });
+                if (success) {
+                    maintenance = maintenance.filter(m => !(m.equipment === equipmentId && m.date === date));
+                    renderMaintenanceTable();
+                    updateDashboard();
+                    fetchData();
+                }
             }
         }
 
@@ -2109,8 +2168,9 @@
         }
 
         // Initialize on load
+        // Initialize on load
         window.onload = function () {
-            initializeSampleData();
+            fetchData();
         };
     </script>
 </body>
